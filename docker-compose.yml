@@ -1,0 +1,285 @@
+version: "3.6"
+services:
+  gateway:
+    # 编译镜像
+    build:
+      context: docker/gateway
+      dockerfile: Dockerfile
+    # 容器名称
+    container_name: gateway
+    # 覆盖容器默认的 ulimit。
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 262140
+        hard: 262140
+    # 目录挂载
+    volumes:
+      - ${SERVICE_DIR}/gateway:${SERVICE_DIR}:rw
+      - ${DOCKER_DIR}:${DOCKER_DIR}:rw
+    # 链接容器
+    links:
+      - route:localhost-route
+      - online:localhost-online
+      - storage-mysql-http:localhost-storage-mysql-http
+      - storage-mysql-history:localhost-storage-mysql-history
+      - storage-redis-member:localhost-storage-redis-member
+    # 重启策略
+    restart: always
+    # 依赖关系
+    depends_on:
+      - route
+      - online
+      - storage-mysql-http
+      - storage-mysql-history
+      - storage-redis-member
+    # 映射端口
+    ports:
+      - 9502:9502
+    # 覆盖容器默认CMD
+    command: [ "./docker/wait-for-it.sh", "localhost-online:6379", "--", "php", "./service/service" ]
+  business:
+    build:
+      context: docker/business
+      dockerfile: Dockerfile
+    container_name: business
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 262140
+        hard: 262140
+    volumes:
+      - ${SERVICE_DIR}/business:${SERVICE_DIR}:rw
+      - ${DOCKER_DIR}:${DOCKER_DIR}:rw
+    links:
+      - route:localhost-route
+      - online:localhost-online
+      - storage-mysql-http:localhost-storage-mysql-http
+      - storage-mysql-history:localhost-storage-mysql-history
+      - storage-redis-member:localhost-storage-redis-member
+      - storage-redis-friend:localhost-storage-redis-friend
+      - storage-redis-group:localhost-storage-redis-group
+      - storage-redis-conversation:localhost-storage-redis-conversation
+      - storage-redis-message:localhost-storage-redis-message
+      - storage-redis-timeline:localhost-storage-redis-timeline
+    restart: always
+    depends_on:
+      - route
+      - online
+      - storage-mysql-http
+      - storage-mysql-history
+      - storage-redis-member
+      - storage-redis-friend
+      - storage-redis-group
+      - storage-redis-conversation
+      - storage-redis-message
+      - storage-redis-timeline
+    command: [ "./docker/wait-for-it.sh", "localhost-route:6379", "--", "php", "./service/service" ]
+  push:
+    build:
+      context: docker/push
+      dockerfile: Dockerfile
+    container_name: push
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 262140
+        hard: 262140
+    volumes:
+      - ${SERVICE_DIR}/push:${SERVICE_DIR}:rw
+      - ${DOCKER_DIR}:${DOCKER_DIR}:rw
+    links:
+      - route:localhost-route
+    restart: always
+    depends_on:
+      - route
+    command: [ "./docker/wait-for-it.sh", "localhost-route:6379", "--", "php", "./service/service" ]
+  route:
+    build:
+      context: docker/route
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: route
+    volumes:
+      - ${DOCKER_DIR}/route/data:/data
+      - ${DOCKER_DIR}/route/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - 6377:6379
+  online:
+    build:
+      context: docker/online
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: online
+    volumes:
+      - ${DOCKER_DIR}/online/data:/data
+      - ${DOCKER_DIR}/online/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - 6378:6379
+  http-nginx:
+    build:
+      context: docker/http/nginx
+      dockerfile: Dockerfile
+    container_name: http-nginx
+    volumes:
+      - ${SERVICE_DIR}/sdk:${ROOT_DIR}/sdk:rw
+      - ${SERVICE_DIR}/http:${ROOT_DIR}/http:rw
+      - ${DOCKER_DIR}/http/nginx/logs:/var/log/nginx
+      - ${DOCKER_DIR}/http/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ${DOCKER_DIR}/http/nginx/rewrite:/etc/nginx/rewrite:ro
+      - ${DOCKER_DIR}/http/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${DOCKER_DIR}/http/nginx/enable-php8.conf:/etc/nginx/enable-php8.conf:ro
+    links:
+      - http-php8:localhost-http-php8
+    restart: always
+    depends_on:
+      - http-php8
+    ports:
+      - "${NGINX_HTTP_HOST_PORT}:80"
+      - "${NGINX_HTTPS_HOST_PORT}:443"
+      - 8443:8443
+  http-php8:
+    build:
+      context: docker/http/php8
+      dockerfile: Dockerfile
+    container_name: http-php8
+    volumes:
+      - ${SERVICE_DIR}/http:/var/www/html
+    # 链接容器
+    links:
+      - storage-mysql-http:localhost-storage-mysql-http
+      - storage-mysql-history:localhost-storage-mysql-history
+    # 重启策略
+    restart: always
+    # 依赖关系
+    depends_on:
+      - storage-mysql-http
+      - storage-mysql-history
+    expose:
+      - 9000
+  storage-mysql-http:
+    build:
+      context: docker/storage/mysql/http
+      dockerfile: Dockerfile
+    container_name: storage-mysql-http
+    volumes:
+      - ${DOCKER_DIR}/storage/mysql/http/data:/var/lib/mysql
+    restart: always
+    ports:
+      - 7033:3306
+  storage-mysql-history:
+    build:
+      context: docker/storage/mysql/history
+      dockerfile: Dockerfile
+    container_name: storage-mysql-history
+    volumes:
+      - ${DOCKER_DIR}/storage/mysql/history/data:/var/lib/mysql
+    restart: always
+    ports:
+      - 6033:3306
+  storage-redis-member:
+    build:
+      context: docker/storage/redis/member
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: storage-redis-member
+    volumes:
+      - ${DOCKER_DIR}/storage/redis/member/data:/data
+      - ${DOCKER_DIR}/storage/redis/member/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - 6379:6379
+  storage-redis-friend:
+    build:
+      context: docker/storage/redis/friend
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: storage-redis-friend
+    volumes:
+      - ${DOCKER_DIR}/storage/redis/friend/data:/data
+      - ${DOCKER_DIR}/storage/redis/friend/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - 6380:6379
+  storage-redis-group:
+    build:
+      context: docker/storage/redis/group
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: storage-redis-group
+    volumes:
+      - ${DOCKER_DIR}/storage/redis/group/data:/data
+      - ${DOCKER_DIR}/storage/redis/group/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - 6381:6379
+  storage-redis-conversation:
+    build:
+      context: docker/storage/redis/conversation
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: storage-redis-conversation
+    volumes:
+      - ${DOCKER_DIR}/storage/redis/conversation/data:/data
+      - ${DOCKER_DIR}/storage/redis/conversation/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - 6382:6379
+  storage-redis-message:
+    build:
+      context: docker/storage/redis/message
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: storage-redis-message
+    volumes:
+      - ${DOCKER_DIR}/storage/redis/message/data:/data
+      - ${DOCKER_DIR}/storage/redis/message/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - 6383:6379
+  storage-redis-timeline:
+    build:
+      context: docker/storage/redis/timeline
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: storage-redis-timeline
+    volumes:
+      - ${DOCKER_DIR}/storage/redis/timeline/data:/data
+      - ${DOCKER_DIR}/storage/redis/timeline/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - 6384:6379

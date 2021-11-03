@@ -1,0 +1,254 @@
+version: "3.6"
+services:
+  nginx:
+    # 编译镜像
+    build:
+      context: docker/http/nginx
+      dockerfile: Dockerfile
+    # 容器名称
+    container_name: im-std-nginx
+    # 目录挂载
+    volumes:
+      - ${SERVICE_DIR}:/apps
+      - ${DOCKER_DIR}/nginx/logs:/var/log/nginx
+      - ${DOCKER_DIR}/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ${DOCKER_DIR}/nginx/php.conf:/etc/nginx/php.conf:ro
+      - ${DOCKER_DIR}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${DOCKER_DIR}/nginx/rewrite.conf:/etc/nginx/rewrite.conf:ro
+    # 链接容器
+    links:
+      - php8:container_php8
+    # 重启策略
+    restart: always
+    # 依赖关系
+    depends_on:
+      - php8
+    # 映射端口
+    ports:
+      - "${NGINX_HTTP_HOST_PORT}:80"
+      - "${NGINX_HTTPS_HOST_PORT}:443"
+  php8:
+    # 编译镜像
+    build:
+      context: docker/http/php8
+      dockerfile: Dockerfile
+    # 容器名称
+    container_name: im-std-php8
+    # 目录挂载
+    volumes:
+      - ${SERVICE_DIR}/http:/var/www/html
+    # 链接容器
+    links:
+      - mysql_ws:container_mysql_ws
+      - mysql_http:container_mysql_http
+    # 重启策略
+    restart: always
+    # 依赖关系
+    depends_on:
+      - mysql_ws
+      - mysql_http
+    expose:
+      - 9000
+  swoole:
+    # 编译镜像
+    build:
+      context: docker/swoole
+      dockerfile: docker/business/message/Dockerfile
+    # 容器名称
+    container_name: im-std-swoole
+    # 覆盖容器默认的 ulimit。
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    # 目录挂载
+    volumes:
+      - ${SERVICE_DIR}/swoole:/apps/site:rw
+      - ${DOCKER_DIR}:/apps/site/docker:rw
+    # 链接容器
+    links:
+      - mysql_ws:container_mysql_ws
+      - redis_online:container_redis_online
+      - redis_offline:container_redis_offline
+      - redis_timeline:container_redis_timeline
+      - redis_conversation:container_redis_conversation
+      - redis_message:container_redis_message
+      - redis_group:container_redis_group
+      - redis_friend:container_redis_friend
+      - redis_member:container_redis_member
+    # 重启策略
+    restart: always
+    # 依赖关系
+    depends_on:
+      - mysql_ws
+      - redis_online
+      - redis_offline
+      - redis_timeline
+      - redis_conversation
+      - redis_message
+      - redis_group
+      - redis_friend
+      - redis_member
+    # 映射端口
+    ports:
+      - 9502:9502
+    # 覆盖容器默认CMD
+    command: [ "./docker/wait-for-it.sh", "container_redis_online:6379", "--", "php", "think","swoole" ]
+  push_offline:
+    # 编译镜像
+    build:
+      context: docker/push
+      dockerfile: Dockerfile
+    # 容器名称
+    container_name: im-std-push-offline
+    # 目录挂载
+    volumes:
+      - ${SERVICE_DIR}/push_offline:/apps/site:rw
+      - ${DOCKER_DIR}:/apps/site/docker:rw
+    # 链接容器
+    links:
+      - mysql_ws:container_mysql_ws
+      - mysql_http:container_mysql_http
+      - redis_offline:container_redis_offline
+    # 重启策略
+    restart: always
+    # 依赖关系
+    depends_on:
+      - mysql_ws
+      - mysql_http
+      - redis_offline
+    # 覆盖容器默认CMD
+    command: [ "./docker/wait-for-it.sh", "container_redis_offline:6379", "--", "php", "service" ]
+  mysql_ws:
+    build:
+      context: docker/storage/mysql/history
+      dockerfile: Dockerfile
+    container_name: im-std-mysql-ws
+    volumes:
+      - ${DOCKER_DIR}/mysql_ws/data:/var/lib/mysql
+    restart: always
+    ports:
+      - 6033:3306
+  mysql_http:
+    build:
+      context: docker/storage/mysql/http
+      dockerfile: Dockerfile
+    container_name: im-std-mysql-http
+    volumes:
+      - ${DOCKER_DIR}/mysql_http/data:/var/lib/mysql
+    restart: always
+    ports:
+      - 7033:3306
+  redis_online:
+    build:
+      context: docker/storage/redis/online
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: im-std-redis-online
+    volumes:
+      - ${DOCKER_DIR}/redis_online/data:/data
+      - ${DOCKER_DIR}/redis_online/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+  redis_offline:
+    build:
+      context: docker/storage/redis/offline
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: im-std-redis-offline
+    volumes:
+      - ${DOCKER_DIR}/redis_offline/data:/data
+      - ${DOCKER_DIR}/redis_offline/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+  redis_timeline:
+    build:
+      context: docker/storage/redis/timeline
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: im-std-redis-timeline
+    volumes:
+      - ${DOCKER_DIR}/redis_timeline/data:/data
+      - ${DOCKER_DIR}/redis_timeline/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+  redis_conversation:
+    build:
+      context: docker/storage/redis/conversation
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: im-std-redis-conversation
+    volumes:
+      - ${DOCKER_DIR}/redis_conversation/data:/data
+      - ${DOCKER_DIR}/redis_conversation/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+  redis_message:
+    build:
+      context: docker/storage/redis/message
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: im-std-redis-message
+    volumes:
+      - ${DOCKER_DIR}/redis_message/data:/data
+      - ${DOCKER_DIR}/redis_message/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+  redis_group:
+    build:
+      context: docker/storage/redis/group
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: im-std-redis-group
+    volumes:
+      - ${DOCKER_DIR}/redis_group/data:/data
+      - ${DOCKER_DIR}/redis_group/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+  redis_friend:
+    build:
+      context: docker/storage/redis/friend
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: im-std-redis-friend
+    volumes:
+      - ${DOCKER_DIR}/redis_friend/data:/data
+      - ${DOCKER_DIR}/redis_friend/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+  redis_member:
+    build:
+      context: docker/storage/redis/member
+      dockerfile: Dockerfile
+    sysctls:
+      - net.core.somaxconn=1024
+    container_name: im-std-redis-member
+    volumes:
+      - ${DOCKER_DIR}/redis_member/data:/data
+      - ${DOCKER_DIR}/redis_member/conf/redis.conf:/etc/redis/redis.conf:ro
+    restart: always
+    expose:
+      - 6379
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
