@@ -1,7 +1,2 @@
-/.idea
-*.log
-*.pid
-.env
-/docker/http/nginx/conf.d/sdk.rongyisou.cn.conf
-/docker/http/nginx/conf.d/www.rongyisou.cn.conf
-/docker/http/nginx/conf.d/cert/www.rongyisou.cn/
+.idea
+vender

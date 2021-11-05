@@ -23,13 +23,10 @@ RUN php -m && php -v && composer --version && php --ri swoole
 ENV TZ Asia/Shanghai
 ENV LANG en_US.UTF-8
 
-# 拷贝项目源文件到镜像
-#COPY . /apps/site
-
 # 切换工作目录
-WORKDIR /v2dmim
+WORKDIR /v2dmin
 
-#CMD [ "php", "think","swoole" ]
+CMD [ "php", "/v2dmin/src/gateway/service" ]
 
 # 使用 Dockerfile 创建镜像 im-std-swoole 版本号为 1.0.0
 # docker build -t im-std-swoole:1.0.0 .

@@ -20,13 +20,25 @@ V2DMIM V1.0版本由[艾邦智汇](https://www.cdabon.com/)独家发布。
 * 统一和精简大量用法
 
 ## 安装
-
+运行
 ~~~
 docker-compose up --build
 ~~~
-清空日志
+清空所有日志
 ~~~
 truncate -s 0 /var/lib/docker/containers/*/*-json.log
+~~~
+杀死运行的容器
+~~~
+docker kill $(docker ps -a -q)
+~~~
+删除所有容器
+~~~
+docker rm $(docker ps -a -q)
+~~~
+ 强制删除所有镜像
+~~~
+docker rmi -f $(docker images -q)
 ~~~
 
 ## 文档
