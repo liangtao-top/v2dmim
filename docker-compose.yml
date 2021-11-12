@@ -84,8 +84,9 @@ services:
       - "31100:31100"
     container_name: http
     volumes:
-      - ./logs:/v2dmim/logs
-      - ./src/serv/api:/v2dmim/src
+      - ./logs:${V2DMIM_ROOT}/logs
+      - ./src/serv/http:${V2DMIM_ROOT}/src
+    working_dir: ${V2DMIM_ROOT}/src
     restart: always
     depends_on:
       - etcd
@@ -96,7 +97,7 @@ services:
       options:
         max-size: "1g"
         max-file: "2"
-    command: php /v2dmim/src/service
+    command: php service
 
   websocket:
     image: phpswoole/swoole
@@ -104,8 +105,9 @@ services:
       - "31102:31102"
     container_name: websocket
     volumes:
-      - ./logs:/v2dmim/logs
-      - ./src/serv/gateway:/v2dmim/src
+      - ./logs:${V2DMIM_ROOT}/logs
+      - ./src/serv/websocket:${V2DMIM_ROOT}/src
+    working_dir: ${V2DMIM_ROOT}/src
     restart: always
     depends_on:
       - etcd
@@ -116,6 +118,5 @@ services:
       options:
         max-size: "1g"
         max-file: "2"
-    command: php /v2dmim/src/service
-
+    command: php service
 
