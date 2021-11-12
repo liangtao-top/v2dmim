@@ -47,18 +47,8 @@ docker rmi -f $(docker images -q)
 
 ## 参与开发
 
-请参阅 [V2DMIM 核心框架包](https://github.com)。
+请参阅 [V2DMIM 核心框架包](https://github.com/liangtao-top/v2dmim-core)。
 
 ## 版权信息
 
-V2DMIM遵循Apache2开源协议发布，并提供免费使用。
-
-本项目包含的第三方源码和二进制文件之版权信息另行标注。
-
-版权所有Copyright © 2020-2021 by V2DMIM (http://www.cdabon.com)
-
-All rights reserved。
-
-V2DMIM® 商标和著作权所有者为艾邦智汇（成都）科技有限公司。
-
-更多细节参阅 [LICENSE.txt](LICENSE.txt)
+参阅 [LICENSE.txt](LICENSE.txt)
