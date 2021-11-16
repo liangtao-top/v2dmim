@@ -1,4 +1,4 @@
-version: "3"
+version: "3.8"
 services:
   mysql:
     image: mysql:5.7
@@ -53,16 +53,20 @@ services:
 
   kafka:
     image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
     container_name: kafka
     restart: always
     environment:
       TZ: Asia/Shanghai
       KAFKA_BROKER_ID: 0
-      KAFKA_ZOOKEEPER_CONNECT: 127.0.0.1:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.0.255:9092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-    network_mode: "host"
+#    network_mode: "host"
     depends_on:
+      - zookeeper
+    links:
       - zookeeper
 
   etcd:
