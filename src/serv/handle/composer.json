@@ -1,0 +1,58 @@
+{
+  "name": "v2dmim/handle",
+  "description": "http service.",
+  "type": "project",
+  "keywords": [
+    "php",
+    "v2dmim",
+    "v2dmim-handle"
+  ],
+  "homepage": "https://github.com/liangtao-top/v2dmim-handle",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "TaoGe",
+      "email": "liangtao.gz@foxmail.com",
+      "role": "Developer",
+      "homepage": "https://github.com/liangtao-top"
+    }
+  ],
+  "require": {
+    "php": ">=8.0.12",
+    "ext-json": "*",
+    "ext-zlib": "*",
+    "ext-mbstring": "*",
+    "liangtao/v2dmim-core": "@dev",
+    "zircote/swagger-php": "^3.3"
+  },
+  "require-dev": {
+    "swoole/ide-helper": "@dev",
+    "phpunit/phpunit": "^9.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "V2dmIM\\Handle\\": "src"
+    },
+    "files": [
+      "src/basic.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "V2dmIM\\Tests\\Handle\\": "tests/"
+    }
+  },
+  "config": {
+    "preferred-install": "dist"
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../../com/php/core"
+    },
+    {
+      "type": "composer",
+      "url": "https://mirrors.aliyun.com/composer/"
+    }
+  ]
+}

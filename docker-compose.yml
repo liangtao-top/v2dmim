@@ -9,7 +9,8 @@ services:
       - ./components/mysql/data:/var/lib/mysql
       - /etc/localtime:/etc/localtime
     environment:
-      MYSQL_ROOT_PASSWORD: V2DMIM
+      MYSQL_DATABASE: V2dmIM
+      MYSQL_ROOT_PASSWORD: XReVA1tSyoTIyWP7
     restart: always
 
   mongodb:
@@ -90,8 +91,10 @@ services:
     restart: always
     depends_on:
       - etcd
+      - mysql
     links:
       - etcd
+      - mysql
     logging:
       driver: json-file
       options:
@@ -120,3 +123,21 @@ services:
         max-file: "2"
     command: php service
 
+  handle:
+    image: phpswoole/swoole
+    container_name: handle
+    volumes:
+      - ./logs:${V2DMIM_ROOT}/logs
+      - ./src/serv/handle:${V2DMIM_ROOT}/src
+    working_dir: ${V2DMIM_ROOT}/src
+    restart: always
+    depends_on:
+      - etcd
+    links:
+      - etcd
+    logging:
+      driver: json-file
+      options:
+        max-size: "1g"
+        max-file: "2"
+    command: php service
