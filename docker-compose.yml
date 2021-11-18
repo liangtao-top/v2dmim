@@ -128,7 +128,9 @@ services:
     command: php service
 
   handle:
-    image: phpswoole/swoole
+    build:
+      context: ./components/phpswoole
+      dockerfile: Dockerfile
     container_name: handle
     volumes:
       - ./logs:${V2DMIM_ROOT}/logs
