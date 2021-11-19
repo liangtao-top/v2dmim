@@ -22,7 +22,7 @@ V2DMIM V1.0版本由[艾邦智汇](https://www.cdabon.com/)独家发布。
 ## 安装
 克隆
 ~~~
-git git@github.com:liangtao-top/v2dmim-server.git --recursive
+git clone git@github.com:liangtao-top/v2dmim-server.git --recursive
 ~~~
 编译启动
 ~~~
