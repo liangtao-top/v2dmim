@@ -20,7 +20,11 @@ V2DMIM V1.0版本由[艾邦智汇](https://www.cdabon.com/)独家发布。
 * 统一和精简大量用法
 
 ## 安装
-运行
+克隆
+~~~
+git git@github.com:liangtao-top/v2dmim-server.git --recursive
+~~~
+编译启动
 ~~~
 docker-compose up --build
 ~~~
@@ -28,7 +32,7 @@ docker-compose up --build
 ~~~
 truncate -s 0 /var/lib/docker/containers/*/*-json.log
 ~~~
-杀死运行的容器
+杀死所有运行容器
 ~~~
 docker kill $(docker ps -a -q)
 ~~~
@@ -36,7 +40,7 @@ docker kill $(docker ps -a -q)
 ~~~
 docker rm $(docker ps -a -q)
 ~~~
- 强制删除所有镜像
+强制删除所有镜像
 ~~~
 docker rmi -f $(docker images -q)
 ~~~
