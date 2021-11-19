@@ -1,0 +1,15 @@
+[submodule "src/serv/http"]
+	path = src/serv/http
+	url = git@github.com:liangtao-top/v2dmim-http.git
+[submodule "src/serv/websocket"]
+	path = src/serv/http
+	url = git@github.com:liangtao-top/v2dmim-websocket.git
+[submodule "src/serv/handle"]
+	path = src/serv/http
+	url = git@github.com:liangtao-top/v2dmim-handle.git
+[submodule "src/com/php/kafka"]
+	path = src/com/php/kafka
+	url = git@github.com:liangtao-top/kafka-php.git
+[submodule "src/com/php/etcd"]
+    	path = src/com/php/etcd
+    	url = git@github.com:liangtao-top/etcd-php.git
