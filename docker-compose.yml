@@ -83,7 +83,7 @@ services:
     restart: always
     command: /usr/local/bin/etcd --name etcd0 --data-dir /etcd-data --listen-client-urls http://0.0.0.0:2379 --advertise-client-urls http://0.0.0.0:2379 --listen-peer-urls http://0.0.0.0:2380 --initial-advertise-peer-urls http://0.0.0.0:2380 --initial-cluster etcd0=http://0.0.0.0:2380 --initial-cluster-token tkn --initial-cluster-state new
 
-  http:
+  gw-http:
     image: phpswoole/swoole
     ports:
       - "31100:31100"
@@ -106,7 +106,7 @@ services:
         max-file: "2"
     command: php service
 
-  websocket:
+  gw-websocket:
     image: phpswoole/swoole
     ports:
       - "31102:31102"
@@ -127,11 +127,11 @@ services:
         max-file: "2"
     command: php service
 
-  handle:
+  core:
     build:
       context: ./components/phpswoole
       dockerfile: Dockerfile
-    container_name: handle
+    container_name: core
     volumes:
       - ./logs:${V2DMIM_ROOT}/logs
       - ./src/serv/handle:${V2DMIM_ROOT}/src
