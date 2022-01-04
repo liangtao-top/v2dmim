@@ -87,10 +87,10 @@ services:
     image: phpswoole/swoole
     ports:
       - "31100:31100"
-    container_name: http
+    container_name: gw-http
     volumes:
       - ./logs:${V2DMIM_ROOT}/logs
-      - ./src/serv/http:${V2DMIM_ROOT}/src
+      - ./src/gw-http:${V2DMIM_ROOT}/src
     working_dir: ${V2DMIM_ROOT}/src
     restart: always
     depends_on:
@@ -110,10 +110,10 @@ services:
     image: phpswoole/swoole
     ports:
       - "31102:31102"
-    container_name: websocket
+    container_name: gw-websocket
     volumes:
       - ./logs:${V2DMIM_ROOT}/logs
-      - ./src/serv/websocket:${V2DMIM_ROOT}/src
+      - ./src/gw-websocket:${V2DMIM_ROOT}/src
     working_dir: ${V2DMIM_ROOT}/src
     restart: always
     depends_on:
@@ -127,14 +127,14 @@ services:
         max-file: "2"
     command: php service
 
-  core:
+  serv-core:
     build:
       context: ./components/phpswoole
       dockerfile: Dockerfile
-    container_name: core
+    container_name: serv-core
     volumes:
       - ./logs:${V2DMIM_ROOT}/logs
-      - ./src/serv/handle:${V2DMIM_ROOT}/src
+      - ./src/serv-core:${V2DMIM_ROOT}/src
     working_dir: ${V2DMIM_ROOT}/src
     restart: always
     depends_on:
