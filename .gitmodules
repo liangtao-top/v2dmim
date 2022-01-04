@@ -1,25 +1,25 @@
-[submodule "src/com/php/core"]
-	path = src/com/php/core
+[submodule "lib/php/core"]
+	path = lib/php/core
 	url = git@github.com:liangtao-top/v2dmim-core.git
     branch = main
-[submodule "src/com/php/kafka"]
-	path = src/com/php/kafka
+[submodule "lib/php/kafka"]
+	path = lib/php/kafka
 	url = git@github.com:liangtao-top/kafka-php.git
 	branch = main
-[submodule "src/com/php/etcd"]
-	path = src/com/php/etcd
+[submodule "lib/php/etcd"]
+	path = lib/php/etcd
 	url = git@github.com:liangtao-top/etcd-php.git
 	branch = main
-[submodule "src/serv/websocket"]
-	path = src/serv/websocket
+[submodule "src/gw-websocket"]
+	path = src/gw-websocket
 	url = git@github.com:liangtao-top/v2dmim-websocket.git
 	branch = main
-[submodule "src/serv/http"]
-	path = src/serv/http
+[submodule "src/gw-http"]
+	path = src/gw-http
 	url = git@github.com:liangtao-top/v2dmim-http.git
 	branch = main
-[submodule "src/serv/handle"]
-	path = src/serv/handle
+[submodule "src/serv-core"]
+	path = src/serv-core
 	url = git@github.com:liangtao-top/v2dmim-handle.git
 	branch = main
 
